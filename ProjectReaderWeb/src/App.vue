@@ -1,84 +1,70 @@
 <template>
-  <div id="app">
-    <nav>
-      <div class="nav-left">
-        <router-link to="/">首页</router-link>
-        <router-link to="/novels">小说列表</router-link>
-      </div>
-      <div class="nav-right">
-        <router-link to="/bookshelf" class="bookshelf-link">
-          <i class="fas fa-book-open"></i>
+  <div>
+    <el-container>
+    <el-header height="60px">
+      <el-menu
+        :router="true"
+        mode="horizontal"
+        :ellipsis="false"
+        class="nav-menu"
+      >
+        <el-menu-item index="/">
+          <el-icon><House /></el-icon>
+          首页
+        </el-menu-item>
+        <el-menu-item index="/novels">
+          <el-icon><List /></el-icon>
+          小说列表
+        </el-menu-item>
+        <div class="flex-grow" />
+        <el-menu-item index="/bookshelf" class="bookshelf-item">
+          <el-icon><Collection /></el-icon>
           我的书架
-        </router-link>
-      </div>
-    </nav>
-    <router-view />
+        </el-menu-item>
+      </el-menu>
+    </el-header>
+
+    <el-main>
+      <router-view />
+    </el-main>
+  </el-container>
   </div>
+  
 </template>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+.el-container {
+  min-height: 100vh;
 }
 
-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  padding: 1rem 2rem;
+.el-header {
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background: white;
-  width: 100%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 100;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
-.nav-left, .nav-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.nav-menu {
+  height: 60px;
+  padding: 0 20px;
 }
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: all 0.3s ease;
+.flex-grow {
+  flex-grow: 1;
 }
 
-nav a:hover {
-  background-color: #f8f9fa;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
-}
-
-.bookshelf-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: #42b983;
+.bookshelf-item {
+  background-color: var(--el-color-primary) !important;
   color: white !important;
-  padding: 0.5rem 1rem;
   border-radius: 4px;
+  margin: 10px 0;
 }
 
-.bookshelf-link:hover {
-  background-color: #3aa876 !important;
+.bookshelf-item:hover {
+  background-color: var(--el-color-primary-light-3) !important;
 }
 
-.bookshelf-link i {
-  font-size: 1.1rem;
+.el-main {
+  padding-top: 20px;
+  background-color: var(--el-bg-color-page);
 }
 </style>
