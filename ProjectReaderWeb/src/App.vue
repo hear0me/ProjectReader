@@ -1,8 +1,9 @@
 <template>
-  <div>
+  <!-- 新增全局包裹容器 -->
+  <div class="global-wrapper">
     <el-container>
-    <el-header height="60px">
-      <el-menu
+      <el-header class="global-header">
+        <el-menu
         :router="true"
         mode="horizontal"
         :ellipsis="false"
@@ -22,49 +23,83 @@
           我的书架
         </el-menu-item>
       </el-menu>
-    </el-header>
+      </el-header>
 
-    <el-main>
-      <router-view />
-    </el-main>
-  </el-container>
+      <!-- 新增内容容器 -->
+      <el-main class="main-container">
+        <div class="content-wrapper">
+          <router-view />
+        </div>
+      </el-main>
+    </el-container>
   </div>
-  
 </template>
 
-<style>
-.el-container {
+<style scoped>
+/* 新增全局包裹层 */
+.global-wrapper {
+  width: 100vw;
+  overflow: hidden;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--el-bg-color-page);
 }
 
-.el-header {
-  padding: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* 统一容器样式 */
+.main-container {
+  flex: 1;
+  display: flex;
+  padding: 0 !important;
+}
+
+/* 内容区域约束 */
+.content-wrapper {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px 32px;
+}
+
+/* 优化头部样式 */
+.global-header {
+  width: 100% !important;
   background: white;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  
+  .nav-menu {
+    width: 100%;
+    max-width: 1600px;
+    height: 60px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
 }
 
-.nav-menu {
-  height: 60px;
-  padding: 0 20px;
+/* 响应式调整 */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    padding: 20px 24px;
+  }
+  
+  .global-header .nav-menu {
+    padding: 0 24px;
+  }
 }
 
-.flex-grow {
-  flex-grow: 1;
-}
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 16px;
+  }
 
-.bookshelf-item {
-  background-color: var(--el-color-primary) !important;
-  color: white !important;
-  border-radius: 4px;
-  margin: 10px 0;
-}
-
-.bookshelf-item:hover {
-  background-color: var(--el-color-primary-light-3) !important;
-}
-
-.el-main {
-  padding-top: 20px;
-  background-color: var(--el-bg-color-page);
+  .global-header .nav-menu {
+    padding: 0 16px;
+    
+    :deep(.el-menu-item) {
+      padding: 0 8px;
+      font-size: 0.9rem;
+    }
+  }
 }
 </style>
