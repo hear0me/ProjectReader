@@ -38,12 +38,12 @@
 <style scoped>
 /* 新增全局包裹层 */
 .global-wrapper {
-  width: 100vw;
-  overflow: hidden;
+  width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color-page);
+  position: relative;
 }
 
 /* 统一容器样式 */
@@ -59,6 +59,7 @@
   max-width: 1600px;
   margin: 0 auto;
   padding: 20px 32px;
+  box-sizing: border-box;
 }
 
 /* 优化头部样式 */
@@ -67,6 +68,8 @@
   background: white;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   z-index: 1000;
+  padding: 0;
+  height: 60px;
   
   .nav-menu {
     width: 100%;
@@ -74,6 +77,7 @@
     height: 60px;
     margin: 0 auto;
     padding: 0 32px;
+    box-sizing: border-box;
   }
 }
 
