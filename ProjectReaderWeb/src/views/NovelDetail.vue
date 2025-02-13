@@ -229,12 +229,10 @@ const readChapter = debounce((id: number) => {
 
 <style scoped lang="scss">
 .novel-detail-container {
-  // 修改容器宽度为100%
   width: 100%;
-  //max-width: 1600px;
   margin: 0 auto;
   padding: 32px;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
 
   // 新增全屏布局控制
@@ -251,11 +249,127 @@ const readChapter = debounce((id: number) => {
     flex-wrap: wrap;
     margin-left: -16px;
     margin-right: -16px;
+    margin-bottom: 32px;
 
     .left-col,
     .right-col {
       padding-left: 16px;
       padding-right: 16px;
+    }
+  }
+
+  .book-card, .author-card, .description-card, .chapter-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .el-card__body {
+      padding: 24px;
+    }
+  }
+
+  .book-info {
+    .book-title {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: #2c3e50;
+      line-height: 1.2;
+    }
+
+    .meta-info {
+      margin-bottom: 24px;
+      :deep(.el-descriptions__label) {
+        color: #606266;
+        font-weight: 500;
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+
+      .el-button {
+        padding: 12px 32px;
+        font-size: 1.1rem;
+        
+        &--primary {
+          background: linear-gradient(45deg, #42b983, #3aa876);
+          border: none;
+          
+          &:hover {
+            background: linear-gradient(45deg, #3aa876, #42b983);
+            transform: translateY(-2px);
+          }
+        }
+      }
+    }
+  }
+
+  .novel-cover {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+
+  .author-profile {
+    text-align: center;
+    padding: 24px 0;
+
+    .author-avatar {
+      border: 4px solid #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+    }
+
+    .author-name {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 16px 0 8px;
+    }
+
+    .author-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: linear-gradient(45deg, #42b983, #3aa876);
+      color: white;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    .author-stats {
+      padding-top: 24px;
+      border-top: 1px solid #eee;
+
+      :deep(.el-statistic) {
+        .el-statistic__number {
+          color: #42b983;
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+        
+        .el-statistic__title {
+          color: #606266;
+          font-size: 0.9rem;
+          margin-top: 8px;
+        }
+      }
     }
   }
 
@@ -283,6 +397,87 @@ const readChapter = debounce((id: number) => {
     :deep(.el-table) {
       width: 99.9% !important; // 修复表格溢出问题
     }
+  }
+
+  // 章节列表和简介样式
+  .description-card,
+  .chapter-card {
+    margin-bottom: 24px;
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      
+      &::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        background: linear-gradient(to bottom, #42b983, #3aa876);
+        margin-right: 12px;
+        border-radius: 2px;
+      }
+    }
+  }
+
+  .description-card {
+    .description-content {
+      line-height: 1.8;
+      color: #606266;
+      font-size: 1.1rem;
+      text-indent: 2em;
+    }
+  }
+
+  .chapter-card {
+    .chapter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+
+      .el-tag {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+      }
+    }
+
+    :deep(.el-table) {
+      border-radius: 8px;
+      overflow: hidden;
+
+      th {
+        background-color: #f5f7fa;
+        color: #2c3e50;
+        font-weight: 600;
+      }
+
+      .chapter-title {
+        cursor: pointer;
+        transition: color 0.3s;
+
+        &:hover {
+          color: #42b983;
+        }
+      }
+
+      .current-chapter {
+        color: #42b983;
+        font-weight: 500;
+      }
+    }
+
+    .empty-chapter {
+      padding: 40px 0;
+    }
+  }
+
+  // 错误提示样式
+  .error-alert {
+    margin-bottom: 24px;
   }
 
   // 调整响应式布局

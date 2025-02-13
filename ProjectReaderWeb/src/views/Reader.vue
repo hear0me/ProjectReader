@@ -1,9 +1,59 @@
 <template>
-  <div class="reader">
+  <div class="reader" :class="{ 'night-mode': isNightMode }">
     <div class="reader-header">
-      <h1>{{ chapter.title }}</h1>
-      <button @click="goBack">返回</button>
+      <div class="header-left">
+        <el-button @click="goBack" icon="ArrowLeft" circle />
+        <h1>{{ chapter.title }}</h1>
+      </div>
+      <div class="header-right">
+        <el-button @click="toggleSettings" icon="Setting" circle />
+        <el-button @click="toggleNightMode" :icon="isNightMode ? 'Sunny' : 'Moon'" circle />
+      </div>
     </div>
+
+    <!-- 设置面板 -->
+    <el-drawer
+      v-model="showSettings"
+      title="阅读设置"
+      :size="300"
+      direction="rtl"
+    >
+      <div class="settings-panel">
+        <div class="setting-item">
+          <span>字体大小</span>
+          <el-slider
+            v-model="fontSize"
+            :min="12"
+            :max="24"
+            :step="1"
+            @change="updateFontSize"
+          />
+        </div>
+        <div class="setting-item">
+          <span>行间距</span>
+          <el-slider
+            v-model="lineHeight"
+            :min="1.5"
+            :max="3"
+            :step="0.1"
+            @change="updateLineHeight"
+          />
+        </div>
+        <div class="setting-item">
+          <span>背景颜色</span>
+          <div class="bg-options">
+            <div
+              v-for="color in bgColors"
+              :key="color"
+              class="bg-option"
+              :style="{ backgroundColor: color }"
+              :class="{ active: backgroundColor === color }"
+              @click="updateBgColor(color)"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
     
     <div class="reader-content">
       <div v-if="loading" class="loading">加载中...</div>
@@ -33,11 +83,58 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
+
+// 阅读设置相关
+const showSettings = ref(false)
+const isNightMode = ref(false)
+const fontSize = ref(16)
+const lineHeight = ref(1.8)
+const backgroundColor = ref('#ffffff')
+const bgColors = ref([
+  '#ffffff', // 白色
+  '#f4ecd8', // 米色
+  '#cce8cf', // 淡绿
+  '#e6e6e6'  // 浅灰
+])
+
+// 设置相关方法
+const toggleSettings = () => {
+  showSettings.value = !showSettings.value
+}
+
+const toggleNightMode = () => {
+  isNightMode.value = !isNightMode.value
+  if (isNightMode.value) {
+    document.body.style.backgroundColor = '#1a1a1a'
+  } else {
+    document.body.style.backgroundColor = backgroundColor.value
+  }
+}
+
+const updateFontSize = (size: number) => {
+  fontSize.value = size
+}
+
+const updateLineHeight = (height: number) => {
+  lineHeight.value = height
+}
+
+const updateBgColor = (color: string) => {
+  backgroundColor.value = color
+  if (!isNightMode.value) {
+    document.body.style.backgroundColor = color
+  }
+}
+
+// 组件卸载时清理
+onUnmounted(() => {
+  document.body.style.backgroundColor = ''
+})
 
 // 验证并获取有效的ID值
 const getValidId = (param: string | string[] | undefined): number => {
@@ -200,11 +297,37 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .reader {
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
+  min-height: 100vh;
+  transition: all 0.3s;
+
+  &.night-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+
+    .reader-content {
+      p {
+        color: #e0e0e0;
+      }
+    }
+
+    .reader-controls {
+      button {
+        background-color: #333;
+        color: #e0e0e0;
+        &:disabled {
+          background-color: #444;
+        }
+        &:not(:disabled):hover {
+          background-color: #444;
+        }
+      }
+    }
+  }
 }
 
 .reader-header {
@@ -212,25 +335,87 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 1rem;
+  z-index: 10;
+
+  .header-left,
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+  }
 }
 
 .reader-content {
-  line-height: 1.8;
-  font-size: 1.1rem;
+  line-height: v-bind(lineHeight);
+  font-size: v-bind('`${fontSize}px`');
   min-height: 400px;
   position: relative;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+
+  p {
+    margin: 1em 0;
+    text-indent: 2em;
+  }
 }
 
 .reader-controls {
   display: flex;
   justify-content: space-between;
   margin-top: 2rem;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  bottom: 1rem;
+
+  button {
+    padding: 0.8rem 2rem;
+    background-color: #42b983;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    min-width: 120px;
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover {
+      background-color: #3aa876;
+      transform: translateY(-1px);
+    }
+  }
 }
 
 .error-message {
-  color: red;
+  color: #ff4757;
   text-align: center;
   margin: 1rem 0;
+  padding: 1rem;
+  background-color: #ffe0e3;
+  border-radius: 4px;
 }
 
 .loading {
@@ -240,17 +425,50 @@ onMounted(async () => {
   transform: translate(-50%, -50%);
 }
 
-button {
-  padding: 0.5rem 1rem;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.settings-panel {
+  padding: 2rem;
+
+  .setting-item {
+    margin-bottom: 2rem;
+
+    span {
+      display: block;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+  }
+
+  .bg-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+
+    .bg-option {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+
+      &.active {
+        border-color: #42b983;
+      }
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
 }
 
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+:deep(.el-drawer__header) {
+  margin-bottom: 2rem;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+:deep(.el-slider) {
+  width: 100%;
 }
 </style>

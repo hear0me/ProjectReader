@@ -3,26 +3,39 @@
   <div class="global-wrapper">
     <el-container>
       <el-header class="global-header">
-        <el-menu
-        :router="true"
-        mode="horizontal"
-        :ellipsis="false"
-        class="nav-menu"
-      >
-        <el-menu-item index="/">
-          <el-icon><House /></el-icon>
-          首页
-        </el-menu-item>
-        <el-menu-item index="/novels">
-          <el-icon><List /></el-icon>
-          小说列表
-        </el-menu-item>
-        <div class="flex-grow" />
-        <el-menu-item index="/bookshelf" class="bookshelf-item">
-          <el-icon><Collection /></el-icon>
-          我的书架
-        </el-menu-item>
-      </el-menu>
+        <div class="nav-container">
+          <!-- 左侧Logo和导航 -->
+          <div class="nav-left">
+            <h1 class="site-title">阅读器</h1>
+            <el-menu
+              :router="true"
+              mode="horizontal"
+              :ellipsis="false"
+              class="nav-menu"
+            >
+              <el-menu-item index="/">
+                <el-icon><House /></el-icon>
+                首页
+              </el-menu-item>
+              <el-menu-item index="/novels">
+                <el-icon><List /></el-icon>
+                小说列表
+              </el-menu-item>
+            </el-menu>
+          </div>
+
+          <!-- 右侧用户操作区 -->
+          <div class="nav-right">
+            <el-button 
+              type="primary" 
+              class="bookshelf-btn" 
+              @click="$router.push('/bookshelf')"
+            >
+              <el-icon><Collection /></el-icon>
+              我的书架
+            </el-button>
+          </div>
+        </div>
       </el-header>
 
       <!-- 新增内容容器 -->
@@ -35,7 +48,11 @@
   </div>
 </template>
 
-<style scoped>
+<script setup lang="ts">
+import { House, List, Collection } from '@element-plus/icons-vue'
+</script>
+
+<style scoped lang="scss">
 /* 新增全局包裹层 */
 .global-wrapper {
   width: 100%;
@@ -70,14 +87,82 @@
   z-index: 1000;
   padding: 0;
   height: 60px;
-  
-  .nav-menu {
-    width: 100%;
+
+  .nav-container {
     max-width: 1600px;
-    height: 60px;
+    height: 100%;
     margin: 0 auto;
     padding: 0 32px;
-    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+
+    .site-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .nav-menu {
+      border: none;
+      height: 60px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+
+      :deep(.el-menu-item) {
+        height: 60px;
+        line-height: 60px;
+        font-size: 1rem;
+        color: #606266;
+        transition: all 0.3s ease;
+
+        &.is-active {
+          color: #42b983;
+          font-weight: 500;
+        }
+
+        &:hover {
+          color: #42b983;
+          background: rgba(66, 185, 131, 0.1);
+        }
+
+        .el-icon {
+          margin-right: 4px;
+          font-size: 1.2em;
+        }
+      }
+    }
+  }
+
+  .nav-right {
+    .bookshelf-btn {
+      height: 40px;
+      padding: 0 24px;
+      border-radius: 20px;
+      font-size: 1rem;
+      background: linear-gradient(45deg, #42b983, #3aa876);
+      border: none;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(66, 185, 131, 0.2);
+      }
+
+      .el-icon {
+        margin-right: 6px;
+        font-size: 1.2em;
+      }
+    }
   }
 }
 
@@ -87,8 +172,14 @@
     padding: 20px 24px;
   }
   
-  .global-header .nav-menu {
-    padding: 0 24px;
+  .global-header {
+    .nav-container {
+      padding: 0 24px;
+    }
+    
+    .nav-left {
+      gap: 24px;
+    }
   }
 }
 
@@ -97,12 +188,83 @@
     padding: 16px;
   }
 
-  .global-header .nav-menu {
-    padding: 0 16px;
-    
-    :deep(.el-menu-item) {
-      padding: 0 8px;
-      font-size: 0.9rem;
+  .global-header {
+    .nav-container {
+      padding: 0 16px;
+    }
+
+    .nav-left {
+      gap: 16px;
+
+      .site-title {
+        font-size: 1.2rem;
+      }
+
+      .nav-menu {
+        :deep(.el-menu-item) {
+          padding: 0 12px;
+          font-size: 0.9rem;
+
+          .el-icon {
+            margin-right: 2px;
+          }
+        }
+      }
+    }
+
+    .nav-right {
+      .bookshelf-btn {
+        padding: 0 16px;
+        height: 36px;
+        font-size: 0.9rem;
+
+        .el-icon {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .global-header {
+    .nav-left {
+      .site-title {
+        display: none;
+      }
+
+      .nav-menu {
+        :deep(.el-menu-item) {
+          padding: 0 8px;
+          
+          span {
+            display: none;
+          }
+
+          .el-icon {
+            margin-right: 0;
+            font-size: 1.4em;
+          }
+        }
+      }
+    }
+
+    .nav-right {
+      .bookshelf-btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 50%;
+
+        span {
+          display: none;
+        }
+
+        .el-icon {
+          margin: 0;
+          font-size: 1.4em;
+        }
+      }
     }
   }
 }
