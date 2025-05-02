@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <nav class="navbar">
-      <router-link to="/" class="nav-home">首页</router-link>
+      <router-link to="/" class="nav-home">ProjectReader</router-link>
       
       <div class="search-container">
         <input 
