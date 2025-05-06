@@ -2,42 +2,7 @@
   <!-- 新增全局包裹容器 -->
   <div class="global-wrapper">
     <el-container>
-      <el-header class="global-header">
-        <div class="nav-container">
-          <!-- 左侧Logo和导航 -->
-          <div class="nav-left">
-            <h1 class="site-title">阅读器</h1>
-            <el-menu
-              :router="true"
-              mode="horizontal"
-              :ellipsis="false"
-              class="nav-menu"
-            >
-              <el-menu-item index="/">
-                <el-icon><House /></el-icon>
-                首页
-              </el-menu-item>
-              <el-menu-item index="/novels">
-                <el-icon><List /></el-icon>
-                小说列表
-              </el-menu-item>
-            </el-menu>
-          </div>
-
-          <!-- 右侧用户操作区 -->
-          <div class="nav-right">
-            <el-button 
-              type="primary" 
-              class="bookshelf-btn" 
-              @click="$router.push('/bookshelf')"
-            >
-              <el-icon><Collection /></el-icon>
-              我的书架
-            </el-button>
-          </div>
-        </div>
-      </el-header>
-
+      
       <!-- 新增内容容器 -->
       <el-main class="main-container">
         <div class="content-wrapper">

@@ -1,515 +1,326 @@
 <template>
-  <div class="home">
-    <nav class="navbar">
-      <router-link to="/" class="nav-home">ProjectReader</router-link>
-      
-      <div class="search-container">
-        <input 
-          type="text" 
-          placeholder="搜索书籍/作者"
-          v-model="searchQuery"
-          @focus="showHistory = true"
-          @blur="() => { showHistory = false }">
-        <div class="search-history" v-show="showHistory">
-          <div v-for="(item, index) in searchHistory" :key="index" class="history-item">
-            {{ item }}
-          </div>
-        </div>
+  <el-container direction="vertical" class="home-container">
+    <el-header class="home-header">
+      <div class="logo-title">ProjectReader</div>
+      <div class="search-bar">
+        <el-input
+          v-model="searchInput"
+          placeholder="搜索书名"
+          :prefix-icon="Search"
+          clearable
+        />
       </div>
+      <div class="header-icons">
+        <el-icon :size="24"><Reading /></el-icon>
+        <el-icon :size="24"><User /></el-icon>
+      </div>
+    </el-header>
 
-      <div class="nav-right">
-        <router-link to="/bookshelf" class="icon-link">
-          <IconBookshelf />
-        </router-link>
-        <router-link to="/profile">
-          <img src="https://picsum.photos/32/32?random=9" class="avatar" alt="用户头像">
-        </router-link>
-      </div>
-    </nav>
+    <el-main class="main-content no-padding">
+      <el-carousel height="200px" arrow="always">
+        <el-carousel-item v-for="item in 4" :key="item" class="carousel-item">
+          <h3>Carousel Slide {{ item }}</h3>
+        </el-carousel-item>
+      </el-carousel>
 
-    <div class="recommendations">
-      <h2>热门推荐</h2>
-      <div class="carousel-container">
-        <div 
-          class="carousel" 
-          :style="{ transform: `translateX(-${currentIndex * 100}%)`, transition: isTransitioning ? 'transform 0.5s ease' : 'none' }"
-          @transitionend="handleTransitionEnd"
-        >
-          <div 
-            class="carousel-item" 
-            v-for="(novel, index) in clonedNovels" 
-            :key="index"
-            @click="goToNovel(novel.id)"
-          >
-            <img :src="novel.cover" alt="novel cover">
-            <h3>{{ novel.title }}</h3>
-            <p>{{ novel.author }}</p>
-          </div>
-        </div>
-        <div class="carousel-dots">
-          <span 
-            v-for="(_, index) in novels" 
-            :key="index"
-            :class="{ active: currentIndex === index + 1 }"
-            @click="setActiveItem(index)"
-          ></span>
-        </div>
-      </div>
-    </div>
+      <div class="content-body">
+        <el-row :gutter="20">
+          <el-col :span="18">
+            <h3 class="section-title">推荐书籍</h3>
+            <el-row :gutter="15">
+              <el-col :span="8" v-for="book in recommendedBooks" :key="book.id">
+                <el-card shadow="hover" class="book-card">
+                  <div class="book-content">
+                    <el-image
+                      :src="book.coverUrl"
+                      fit="cover"
+                      class="book-cover"
+                    />
+                    <div class="book-info">
+                      <div class="book-title">{{ book.title }}</div>
+                      <div class="book-author">
+                         <el-icon><UserFilled /></el-icon> {{ book.author }}
+                      </div>
+                       <div class="book-status">{{ book.status }}</div>
+                      <div class="book-description">{{ book.description }}</div>
+                      <div class="book-latest-chapter">{{ book.latestChapter }}</div>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </el-col>
 
-    <section class="ranking-section">
-      <h2>本周热门排行</h2>
-      <div class="ranking-list">
-        <div class="rank-item" v-for="(novel, index) in rankingNovels" :key="novel.id">
-          <span class="rank-number">{{ index + 1 }}</span>
-          <img :src="novel.cover" :alt="novel.title">
-          <div class="info">
-            <h4>{{ novel.title }}</h4>
-            <p class="author">{{ novel.author }}</p>
-            <p class="stats">
-              <span class="hot">🔥 {{ novel.hot }}</span>
-              <span class="rating">⭐ {{ novel.rating }}</span>
-            </p>
-          </div>
-        </div>
+          <el-col :span="6">
+            <el-tabs v-model="activeRankTab" class="ranking-tabs">
+              <el-tab-pane label="总排行" name="total">
+                <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.total" :key="index">
+                    {{ index + 1 }} {{ item }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+              <el-tab-pane label="月排行" name="monthly">
+                 <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.monthly" :key="index">
+                     {{ index + 1 }} {{ item }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+              <el-tab-pane label="周排行" name="weekly">
+                 <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.weekly" :key="index">
+                     {{ index + 1 }} {{ item }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+              <el-tab-pane label="日排行" name="daily">
+                 <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.daily" :key="index">
+                    {{ index + 1 }} {{ item }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+            </el-tabs>
+          </el-col>
+        </el-row>
       </div>
-    </section>
+    </el-main>
 
-    <footer class="footer">
-      <div class="copyright">© 2025 ProjectReader 版权所有</div>
-      <div class="links">
-        <a href="/help">帮助中心</a>
-        <a href="/contact">联系我们</a>
-      </div>
-    </footer>
-  </div>
+    <el-footer class="home-footer">
+      <span>版权信息</span>
+      <span>联系方式: xxx-xxxx-xxxx</span>
+    </el-footer>
+  </el-container>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import IconBookshelf from '@/components/icons/IconBookshelf.vue'
+<script setup>
+import { ref } from 'vue';
+import { Search, User, Reading, UserFilled } from '@element-plus/icons-vue'; // Import icons
 
-const router = useRouter()
-const searchQuery = ref('')
-const showHistory = ref(false)
-const searchHistory = ref(['玄幻小说', '科幻经典', '编程指南', '历史人文'])
+// --- State ---
+const searchInput = ref('');
+const activeRankTab = ref('total'); // Default active tab
 
-const rankingNovels = [
-  {
-    id: 1,
-    title: '无限轮回',
-    author: '作者A',
-    cover: 'https://picsum.photos/150/200?random=4',
-    hot: '1.2万',
-    rating: '4.5'
-  },
-  {
-    id: 2,
-    title: '星际穿越',
-    author: '作者B',
-    cover: 'https://picsum.photos/150/200?random=5',
-    hot: '9.8k',
-    rating: '4.7'
-  },
-  {
-    id: 3,
-    title: '末日求生',
-    author: '作者C',
-    cover: 'https://picsum.photos/150/200?random=6',
-    hot: '8.5k',
-    rating: '4.4'
-  },
-  {
-    id: 4,
-    title: '修仙之路',
-    author: '作者D',
-    cover: 'https://picsum.photos/150/200?random=7',
-    hot: '7.2k',
-    rating: '4.6'
-  },
-  {
-    id: 5,
-    title: '都市传说',
-    author: '作者E',
-    cover: 'https://picsum.photos/150/200?random=8',
-    hot: '6.9k',
-    rating: '4.3'
-  }
-]
+// Placeholder data - Replace with actual data fetching
+const recommendedBooks = ref([
+  { id: 1, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第100章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+  { id: 2, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第123章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+  { id: 3, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第99章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+  { id: 4, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第205章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+  { id: 5, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第50章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+  { id: 6, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第88章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+    { id: 7, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第100章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+  { id: 8, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第123章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+  { id: 9, title: '书籍名', author: '作者名', status: '连载中', description: '书籍简介...', latestChapter: '最新章节 第99章...', coverUrl: 'https://via.placeholder.com/100x150/eee/aaa?text=Cover' },
+]);
 
-const novels = [
-  {
-    id: 1,
-    title: '小说1',
-    author: '作者1',
-    cover: 'https://picsum.photos/200/300?random=1'
-  },
-  {
-    id: 2,
-    title: '小说2', 
-    author: '作者2',
-    cover: 'https://picsum.photos/200/300?random=2'
-  },
-  {
-    id: 3,
-    title: '小说3',
-    author: '作者3',
-    cover: 'https://picsum.photos/200/300?random=3'
-  }
-]
+const rankingData = ref({
+  total: ['小说', '小说 J', '小说 I', '小说 B'],
+  monthly: ['月榜小说A', '月榜小说B', '月榜小说C', '月榜小说D'],
+  weekly: ['周榜书1', '周榜书2', '周榜书3', '周榜书4'],
+  daily: ['日榜Top1', '日榜Top2', '日榜Top3', '日榜Top4'],
+});
 
-// Add clones for infinite effect
-const clonedNovels = [
-  novels[novels.length - 1], // Last item
-  ...novels,                 // Original items
-  novels[0]                  // First item
-]
-
-const currentIndex = ref(1) // Start at first real item
-const timer = ref<number>()
-const isTransitioning = ref(true)
-
-const setActiveItem = (index: number) => {
-  isTransitioning.value = true
-  currentIndex.value = index + 1 // Offset for cloned items
-}
-
-const handleTransitionEnd = () => {
-  if (currentIndex.value === clonedNovels.length - 1) {
-    isTransitioning.value = false
-    currentIndex.value = 1
-    // isTransitioning.value = true
-  }
-}
-
-const startAutoPlay = () => {
-  timer.value = setInterval(() => {
-    isTransitioning.value = true
-    currentIndex.value++
-    
-    // If we're at the last clone, jump to first real item
-    if (currentIndex.value >= clonedNovels.length) {
-      // Reset immediately without waiting for transition
-      isTransitioning.value = false
-      currentIndex.value = 1
-      isTransitioning.value = true
-    }
-  }, 3000)
-}
-
-const goToNovel = (id: number) => {
-  router.push(`/novels/${id}`)
-}
-
-onMounted(() => {
-  startAutoPlay()
-})
-
-onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value)
-  }
-})
+// --- Methods ---
+// Add methods here if needed (e.g., for handling search, fetching data)
 </script>
 
 <style scoped>
-.home {
+.home-container {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 60px 0 0;
-  width: 100%;
+  background-color: #f7f8fc; /* Light background for the page */
 }
 
-/* lastModified: 2025-05-02T07:25:38Z */
-
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.home-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  z-index: 1000;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ebeef5;
+  padding: 0 20px;
+  height: 60px;
 }
 
-.nav-home {
-  text-decoration: none;
-  color: #333;
-  font-size: 1.1rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: color 0.3s;
+.logo-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #303133;
 }
 
-.nav-home:hover,
-.nav-home.router-link-active {
-  color: #007bff;
+.search-bar {
+  width: 300px; /* Adjust width as needed */
+  margin: 0 20px;
 }
 
-.search-container {
-  position: relative;
-  width: 40%;
-  max-width: 480px;
+.search-bar .el-input {
+    background-color: #f4f4f5; /* Lighter background for search */
+    border-radius: 4px;
+}
+.search-bar .el-input__wrapper{
+     background-color: #f4f4f5;
+     box-shadow: none;
 }
 
-.search-container input {
-  width: 100%;
-  height: 36px;
-  padding: 0 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 18px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.search-container input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
-}
-
-.search-history {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  width: 100%;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  padding: 8px 0;
-  z-index: 1000;
-}
-
-.history-item {
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.history-item:hover {
-  background-color: #f5f5f5;
-}
-
-.nav-right {
+.header-icons {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 15px; /* Space between icons */
+  color: #606266;
+}
+.header-icons .el-icon {
+    cursor: pointer;
+}
+.header-icons .el-icon:hover {
+    color: var(--el-color-primary);
 }
 
-.icon-link {
-  color: #666;
-  transition: color 0.3s;
-  display: flex;
-  align-items: center;
-}
-
-.icon-link:hover {
-  color: #007bff;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-
-.recommendations {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-  height: 300px;
-  position: relative;
-}
-
-.carousel-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.carousel {
-  display: flex;
-  height: 100%;
+.main-content {
+  padding: 0; /* Remove default main padding */
 }
 
 .carousel-item {
-  flex: 0 0 100%;
-  text-align: center;
-  cursor: pointer;
+  background-color: #d3dce6; /* Placeholder background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475669;
+}
+
+.content-body {
+    padding: 20px; /* Add padding for the main content below carousel */
+}
+
+.section-title {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  color: #303133;
+  font-weight: 600;
+}
+
+.book-card {
+  margin-bottom: 15px;
+  background-color: #f0e6ff; /* Light purple background like image */
+  border: 1px solid #e1d4f5; /* Slightly darker border */
+}
+
+.book-content {
+  display: flex;
+  gap: 15px;
+}
+
+.book-cover {
+  width: 80px; /* Fixed width for cover */
+  height: 120px; /* Fixed height for cover */
+  flex-shrink: 0; /* Prevent image from shrinking */
+  border-radius: 4px;
+}
+
+.book-info {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #606266;
+  overflow: hidden; /* Prevent text overflow issues */
 }
 
-.carousel-item img {
-  width: 225px;
-  height: 300px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+.book-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.book-author, .book-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+    color: #888;
+}
+.book-author .el-icon {
+    font-size: 0.9em;
 }
 
-.carousel-item:hover img {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+.book-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit description to 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 5px;
+   line-height: 1.4;
 }
 
-.carousel-dots {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  z-index: 1;
+.book-latest-chapter {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #a0a0a0;
+  font-size: 0.8rem;
 }
 
-.carousel-dots span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #ddd;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.ranking-tabs {
+    background-color: #fff;
+    padding: 10px 15px;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
 }
 
-.carousel-dots span.active {
-  background-color: #666;
+/* Style the tabs */
+:deep(.ranking-tabs .el-tabs__header) {
+  margin-bottom: 10px;
+}
+:deep(.ranking-tabs .el-tabs__item) {
+    font-size: 0.9rem;
 }
 
-.ranking-section {
-  width: 100%;
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 2rem;
-}
 
 .ranking-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 1.5rem;
-}
-
-.rank-item {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  transition: transform 0.3s ease;
-}
-
-.rank-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.rank-number {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #ff6b6b;
-  margin-right: 1rem;
-  min-width: 30px;
-}
-
-.rank-item img {
-  width: 80px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-right: 1rem;
-}
-
-.info {
-  flex: 1;
-}
-
-.info h4 {
-  font-size: 1.1rem;
-  margin: 0 0 0.5rem;
-  color: #333;
-}
-
-.info .author {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.stats {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.hot {
-  color: #ff6b6b;
-}
-
-.rating {
-  color: #ffd700;
-}
-
-h2 {
-  text-align: left;
-  margin-bottom: 1rem;
-  padding-left: 1rem;
-  color: #333;
-  font-size: 1.5rem;
-}
-
-h3 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
-p {
-  color: #666;
+  list-style: none;
+  padding-left: 5px;
   margin: 0;
 }
 
-.footer {
-  margin-top: auto;
-  padding: 2rem;
-  background: #f5f5f5;
+.ranking-list li {
+  padding: 6px 0;
+  font-size: 0.9rem;
+  border-bottom: 1px dashed #ebeef5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #606266;
+}
+.ranking-list li:last-child {
+    border-bottom: none;
+}
+.ranking-list li:first-child {
+    font-weight: bold;
+    color: #e6a23c; /* Highlight top rank */
+}
+.ranking-list li:nth-child(2) {
+   font-weight: 500;
+   color: #f56c6c; /* Highlight 2nd rank */
+}
+.ranking-list li:nth-child(3) {
+   font-weight: 500;
+    color: #67c23a; /* Highlight 3rd rank */
+}
+
+
+.home-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.footer .copyright {
-  color: #666;
-}
-
-.footer .links {
-  display: flex;
-  gap: 2rem;
-}
-
-.footer a {
-  color: #666;
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.footer a:hover {
-  color: #333;
+  background-color: #e9ecef; /* Footer background */
+  color: #6c757d; /* Footer text color */
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  height: 40px;
+  border-top: 1px solid #dee2e6;
 }
 </style>
