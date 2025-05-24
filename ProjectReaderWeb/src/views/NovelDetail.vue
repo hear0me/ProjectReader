@@ -1,5 +1,7 @@
 <template>
-  <el-container class="novel-detail-container">
+  <el-container direction="vertical" class="novel-detail-container">
+    <Header />
+    
     <el-main class="main-content">
       <!-- 加载状态 -->
       <el-skeleton :rows="5" animated v-if="loading" />
@@ -142,6 +144,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { debounce } from 'lodash-es'
+import Header from '@/components/Header.vue'
 
 interface Novel {
   id: number
@@ -231,7 +234,7 @@ const readChapter = debounce((id: number) => {
 .novel-detail-container {
   width: 100%;
   margin: 0 auto;
-  padding: 32px;
+  // padding: 32px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
 

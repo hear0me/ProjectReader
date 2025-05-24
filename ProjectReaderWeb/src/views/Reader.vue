@@ -249,7 +249,7 @@ async function goToChapter(newChapterId: number | null) {
 // 返回按钮处理
 function goBack() {
   if (novelId.value < 0) {
-    router.push('/novels') // 如果没有有效的小说ID，返回小说列表页面
+    router.push('/') // 如果没有有效的小说ID，返回首页
     return
   }
   router.push(`/novels/${novelId.value}`)
