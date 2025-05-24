@@ -1,19 +1,18 @@
 <template>
-  <div class="reader" :class="{ 'night-mode': isNightMode }">
+  <div class="reader" :class="{ 'night-mode': isNightModeActive }">
     <div class="reader-header">
       <div class="header-left">
         <el-button @click="goBack" icon="ArrowLeft" circle />
-        <h1>{{ chapter.title }}</h1>
+        <h1>{{ chapterData.title }}</h1>
       </div>
       <div class="header-right">
-        <el-button @click="toggleSettings" icon="Setting" circle />
-        <el-button @click="toggleNightMode" :icon="isNightMode ? 'Sunny' : 'Moon'" circle />
+        <el-button @click="readerSettings.toggleSettings" icon="Setting" circle />
+        <el-button @click="readerSettings.toggleNightMode" :icon="isNightModeActive ? 'Sunny' : 'Moon'" circle />
       </div>
     </div>
 
-    <!-- 设置面板 -->
     <el-drawer
-      v-model="showSettings"
+      v-model="readerSettings.showSettings.value"
       title="阅读设置"
       :size="300"
       direction="rtl"
@@ -22,59 +21,60 @@
         <div class="setting-item">
           <span>字体大小</span>
           <el-slider
-            v-model="fontSize"
+            v-model="readerSettings.settings.fontSize"
             :min="12"
-            :max="24"
+            :max="30"
             :step="1"
-            @change="updateFontSize"
+            @change="readerSettings.updateFontSize"
           />
         </div>
         <div class="setting-item">
           <span>行间距</span>
           <el-slider
-            v-model="lineHeight"
-            :min="1.5"
+            v-model="readerSettings.settings.lineHeight"
+            :min="1.2"
             :max="3"
             :step="0.1"
-            @change="updateLineHeight"
+            @change="readerSettings.updateLineHeight"
           />
         </div>
         <div class="setting-item">
           <span>背景颜色</span>
           <div class="bg-options">
             <div
-              v-for="color in bgColors"
+              v-for="color in readerSettings.bgColors"
               :key="color"
               class="bg-option"
               :style="{ backgroundColor: color }"
-              :class="{ active: backgroundColor === color }"
-              @click="updateBgColor(color)"
+              :class="{ active: readerSettings.settings.backgroundColor === color && !isNightModeActive }"
+              @click="readerSettings.updateBgColor(color)"
             ></div>
           </div>
         </div>
       </div>
     </el-drawer>
-    
-    <div class="reader-content">
-      <div v-if="loading" class="loading">加载中...</div>
-      <div v-else-if="error" class="error-message">{{ error }}</div>
-      <template v-else>
-        <p v-for="(paragraph, index) in chapter.content" :key="index">
+
+    <div class="reader-content" :style="readerSettings.readerContentStyles.value">
+      <div v-if="navigation.loading.value" class="loading">加载中...</div>
+      <div v-else-if="navigation.error.value" class="error-message">{{ navigation.error.value }}</div>
+      <template v-else-if="chapterData.content && chapterData.content.length">
+        <p v-for="(paragraph, index) in chapterData.content" :key="index">
           {{ paragraph }}
         </p>
       </template>
+      <div v-else class="empty-content">暂无内容</div>
     </div>
 
     <div class="reader-controls">
-      <button 
-        :disabled="!hasPrevChapter" 
-        @click="goToChapter(prevChapterId)"
+      <button
+        :disabled="!navigation.hasPrevChapter.value"
+        @click="navigation.goToChapter(navigation.prevChapterId.value)"
       >
         上一章
       </button>
-      <button 
-        :disabled="!hasNextChapter" 
-        @click="goToChapter(nextChapterId)"
+      <button
+        :disabled="!navigation.hasNextChapter.value"
+        @click="navigation.goToChapter(navigation.nextChapterId.value)"
       >
         下一章
       </button>
@@ -83,249 +83,113 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router' // useRoute can still be useful directly here for initial check
+import { useReaderSettings } from '../components/useReaderSettings' // Adjust path
+import { useChapterNavigation } from '../components/useChapterNavigation' // Adjust path
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const readerSettings = useReaderSettings()
+const navigation = useChapterNavigation()
 
-// 阅读设置相关
-const showSettings = ref(false)
-const isNightMode = ref(false)
-const fontSize = ref(16)
-const lineHeight = ref(1.8)
-const backgroundColor = ref('#ffffff')
-const bgColors = ref([
-  '#ffffff', // 白色
-  '#f4ecd8', // 米色
-  '#cce8cf', // 淡绿
-  '#e6e6e6'  // 浅灰
-])
+// Expose reactive properties directly for simpler template access
+const chapterData = navigation.chapter // This is already a ref
+const isNightModeActive = readerSettings.isNightMode // This is already a ref
 
-// 设置相关方法
-const toggleSettings = () => {
-  showSettings.value = !showSettings.value
-}
+// Expose methods
+const goBack = navigation.goBack
 
-const toggleNightMode = () => {
-  isNightMode.value = !isNightMode.value
-  if (isNightMode.value) {
-    document.body.style.backgroundColor = '#1a1a1a'
-  } else {
-    document.body.style.backgroundColor = backgroundColor.value
-  }
-}
-
-const updateFontSize = (size: number) => {
-  fontSize.value = size
-}
-
-const updateLineHeight = (height: number) => {
-  lineHeight.value = height
-}
-
-const updateBgColor = (color: string) => {
-  backgroundColor.value = color
-  if (!isNightMode.value) {
-    document.body.style.backgroundColor = color
-  }
-}
-
-// 组件卸载时清理
-onUnmounted(() => {
-  document.body.style.backgroundColor = ''
-})
-
-// 验证并获取有效的ID值
-const getValidId = (param: string | string[] | undefined): number => {
-  const id = typeof param === 'string' ? parseInt(param, 10) : NaN
-  return isNaN(id) ? -1 : id
-}
-
-// 使用ref使ID值具有响应性
-const novelId = ref<number>(getValidId(route.params.novelId))
-const chapterId = ref<number>(getValidId(route.params.chapterId))
-
-const loading = ref(false) // 初始状态设为false
-const error = ref<string | null>(null)
-
-interface Chapter {
-  id: number
-  title: string
-  content: string[]
-}
-
-const chapter = ref<Chapter>({
-  id: chapterId.value,
-  title: `第${chapterId.value}章`,
-  content: []
-})
-
-const chapters = ref<number[]>([])
-
-// 模拟API调用获取章节列表
-const fetchChaptersList = async () => {
-  try {
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 300))
-    const response = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    chapters.value = response
-    return response
-  } catch (e) {
-    error.value = '获取章节列表失败'
-    console.error(e)
-    return []
-  }
-}
-
-// 模拟API调用获取章节内容
-const fetchChapterContent = async (id: number) => {
-  // 先重置错误状态
-  error.value = null
-  
-  // 参数验证
-  if (id < 0) {
-    error.value = '无效的章节ID'
-    return
-  }
-
-  try {
-    loading.value = true // 开始加载
-    
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    const response = {
-      id: id,
-      title: `第${id}章`,
-      content: [
-        `这是第${id}章的示例内容。`,
-        '这是第一段内容。',
-        '这是第二段内容。',
-        '这是第三段内容。',
-        '这是第四段内容。'
-      ]
-    }
-    
-    chapter.value = response
-  } catch (e) {
-    error.value = '获取章节内容失败'
-    console.error(e)
-  } finally {
-    loading.value = false // 确保总是关闭加载状态
-  }
-}
-
-// 计算当前章节在列表中的索引
-const currentChapterIndex = computed(() => chapters.value.indexOf(chapterId.value))
-
-// 根据实际章节列表判断是否有上/下章
-const hasPrevChapter = computed(() => currentChapterIndex.value > 0)
-const hasNextChapter = computed(() => currentChapterIndex.value < chapters.value.length - 1)
-
-// 获取上/下章的实际ID
-const prevChapterId = computed(() => 
-  hasPrevChapter.value ? chapters.value[currentChapterIndex.value - 1] : null
-)
-const nextChapterId = computed(() => 
-  hasNextChapter.value ? chapters.value[currentChapterIndex.value + 1] : null
-)
-
-// 章节导航
-async function goToChapter(newChapterId: number | null) {
-  if (newChapterId === null || novelId.value < 0) {
-    error.value = '无效的导航参数'
-    return
-  }
-
-  try {
-    await router.push(`/novels/${novelId.value}/read/${newChapterId}`)
-  } catch (e) {
-    error.value = '页面跳转失败'
-    console.error(e)
-  }
-}
-
-// 返回按钮处理
-function goBack() {
-  if (novelId.value < 0) {
-    router.push('/') // 如果没有有效的小说ID，返回首页
-    return
-  }
-  router.push(`/novels/${novelId.value}`)
-}
-
-// 监听路由参数变化
-watch(() => route.params.novelId, (newNovelId) => {
-  const newId = getValidId(newNovelId)
-  if (novelId.value !== newId) {
-    novelId.value = newId
-  }
-})
-
-watch(() => route.params.chapterId, (newChapterId) => {
-  const newId = getValidId(newChapterId)
-  if (chapterId.value !== newId) {
-    chapterId.value = newId
-    if (newId >= 0) {
-      fetchChapterContent(newId)
-    }
-  }
-})
-
-// 组件挂载时初始化数据
 onMounted(async () => {
-  // 参数验证
-  if (novelId.value < 0 || chapterId.value < 0) {
-    error.value = '无效的参数'
-    return
-  }
+  // Ensure IDs are valid before initializing
+  const initialNovelId = navigation.getValidId(route.params.novelId);
+  const initialChapterId = navigation.getValidId(route.params.chapterId);
 
-  // 初始化数据加载
-  loading.value = true
-  try {
-    await Promise.all([
-      fetchChaptersList(),
-      fetchChapterContent(chapterId.value)
-    ])
-  } catch (e) {
-    error.value = '加载失败'
-    console.error(e)
-  } finally {
-    loading.value = false
+  if (initialNovelId < 0 || initialChapterId < 0) {
+     navigation.error.value = "无效的小说或章节ID，无法加载页面。";
+     navigation.loading.value = false; // Ensure loading is false
+     return;
   }
+  // Update refs in composable if they were not set by watchers yet (e.g. direct navigation)
+  navigation.novelId.value = initialNovelId;
+  navigation.chapterId.value = initialChapterId;
+
+  await navigation.initializeChapterData(initialNovelId, initialChapterId);
 })
+
+// Watchers for route params are now inside useChapterNavigation
 </script>
 
 <style scoped lang="scss">
+// Global styles (consider moving to App.vue or a global CSS file if used across app)
+// :global(body.global-night-mode) {
+//   background-color: #1a1a1a !important;
+//   color: #e0e0e0 !important;
+// }
+// :global(body.global-light-mode) {
+//   /* Styles for light mode on body if needed, e.g., transitions */
+// }
+
 .reader {
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
   min-height: 100vh;
-  transition: all 0.3s;
+  transition: color 0.3s; /* Background is handled by body or reader-content */
 
+  // Night mode styles specific to the reader component itself
   &.night-mode {
-    background-color: #1a1a1a;
-    color: #e0e0e0;
+    color: #e0e0e0; // Default text color for night mode
+
+    .reader-header {
+      background-color: rgba(30, 30, 30, 0.9); // Darker header
+      h1 { color: #e0e0e0; }
+    }
 
     .reader-content {
-      p {
-        color: #e0e0e0;
-      }
+      background-color: #2c2c2c; // Slightly lighter than body for contrast
+      // color is inherited or can be set specifically:
+      // p { color: #dcdcdc; }
     }
 
     .reader-controls {
+      background-color: rgba(30, 30, 30, 0.9);
       button {
-        background-color: #333;
+        background-color: #555;
         color: #e0e0e0;
         &:disabled {
           background-color: #444;
         }
         &:not(:disabled):hover {
-          background-color: #444;
+          background-color: #666;
         }
       }
+    }
+    .error-message {
+      background-color: #573033;
+      color: #ffc0cb;
+    }
+    // Adjust Element Plus components for night mode if needed via :deep
+    :deep(.el-button) {
+      // Example: You might want to change default button colors in night mode
+      // This depends on how Element Plus handles theming.
+      background-color: #555;
+      color: #e0e0e0;
+      &:hover { background-color: #666; }
+    }
+    :deep(.el-drawer) {
+       background-color: #2c2c2c; // For the drawer itself
+    }
+    :deep(.el-drawer__header) {
+       color: #e0e0e0;
+       background-color: #333;
+       border-bottom-color: #444;
+    }
+    :deep(.el-drawer__body) {
+       background-color: #2c2c2c;
+       color: #e0e0e0;
+    }
+    :deep(.settings-panel span) {
+     color: #e0e0e0;
     }
   }
 }
@@ -343,6 +207,8 @@ onMounted(async () => {
   position: sticky;
   top: 1rem;
   z-index: 10;
+  transition: background-color 0.3s, color 0.3s;
+
 
   .header-left,
   .header-right {
@@ -353,24 +219,33 @@ onMounted(async () => {
     h1 {
       margin: 0;
       font-size: 1.5rem;
+      transition: color 0.3s;
     }
   }
 }
 
 .reader-content {
-  line-height: v-bind(lineHeight);
-  font-size: v-bind('`${fontSize}px`');
+  /* Use CSS Custom Properties set by the composable */
+  font-size: var(--reader-font-size, 16px); /* Fallback values */
+  line-height: var(--reader-line-height, 1.8);
+  /* background-color: var(--reader-bg-color, rgba(255, 255, 255, 0.95)); */
+  /* Let the .reader.night-mode handle its own background or inherit from body */
+  background-color: rgba(255, 255, 255, 0.95); /* Default light mode background */
+
+
   min-height: 400px;
   position: relative;
   padding: 2rem;
-  background-color: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+  transition: background-color 0.3s, color 0.3s;
+
 
   p {
     margin: 1em 0;
     text-indent: 2em;
+    transition: color 0.3s;
   }
 }
 
@@ -385,6 +260,7 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   bottom: 1rem;
+  transition: background-color 0.3s;
 
   button {
     padding: 0.8rem 2rem;
@@ -416,6 +292,7 @@ onMounted(async () => {
   padding: 1rem;
   background-color: #ffe0e3;
   border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .loading {
@@ -423,25 +300,31 @@ onMounted(async () => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+}
+.empty-content {
+ text-align: center;
+ padding: 2rem;
+ color: #888;
 }
 
 .settings-panel {
-  padding: 2rem;
+  padding: 1rem; /* Reduced padding for drawer */
 
   .setting-item {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 
     span {
       display: block;
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem;
       font-weight: 500;
     }
   }
 
   .bg-options {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); /* Responsive columns */
+    gap: 0.8rem;
 
     .bg-option {
       width: 100%;
@@ -453,6 +336,7 @@ onMounted(async () => {
 
       &.active {
         border-color: #42b983;
+        box-shadow: 0 0 5px #42b983;
       }
 
       &:hover {
@@ -463,9 +347,13 @@ onMounted(async () => {
 }
 
 :deep(.el-drawer__header) {
-  margin-bottom: 2rem;
-  padding: 1rem 2rem;
+  margin-bottom: 1rem; /* Adjusted */
+  padding: 1rem 1.5rem; /* Adjusted */
   border-bottom: 1px solid #eee;
+  // Night mode handled by .reader.night-mode :deep(...)
+}
+:deep(.el-drawer__body) {
+ padding: 0 !important; // Override ElPlus padding if settings-panel has its own
 }
 
 :deep(.el-slider) {
