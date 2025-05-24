@@ -40,7 +40,7 @@ import { House, List, Collection } from '@element-plus/icons-vue'
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 20px 32px;
+  // padding: 20px 32px;
   box-sizing: border-box;
 }
 

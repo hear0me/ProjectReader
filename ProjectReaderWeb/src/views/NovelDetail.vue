@@ -190,7 +190,7 @@ const novel = ref<Novel>({
   id: novelId.value,
   title: '示例小说',
   author: '示例作者',
-  cover: 'https://via.placeholder.com/300',
+  cover: 'https://bookcover.yuewen.com/qdbimg/349573/1037753347/600.webp',
   description: '这是一个示例小说的简介'
 })
 
@@ -241,6 +241,7 @@ const readChapter = debounce((id: number) => {
     max-width: 100%;
     padding: 0;
     margin: 0;
+    overflow-x: hidden; // 新增：隐藏横向滚动条
   }
 
   // 优化栅格布局
