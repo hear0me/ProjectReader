@@ -11,44 +11,25 @@
       </div>
     </div>
 
-    <el-drawer
-      v-model="readerSettings.showSettings.value"
-      title="阅读设置"
-      :size="300"
-      direction="rtl"
-    >
+    <el-drawer v-model="readerSettings.showSettings.value" title="阅读设置" :size="300" direction="rtl">
       <div class="settings-panel">
         <div class="setting-item">
           <span>字体大小</span>
-          <el-slider
-            v-model="readerSettings.settings.fontSize"
-            :min="12"
-            :max="30"
-            :step="1"
-            @change="readerSettings.updateFontSize"
-          />
+          <el-slider v-model="readerSettings.settings.fontSize" :min="12" :max="30" :step="1"
+            @change="readerSettings.updateFontSize" />
         </div>
         <div class="setting-item">
           <span>行间距</span>
-          <el-slider
-            v-model="readerSettings.settings.lineHeight"
-            :min="1.2"
-            :max="3"
-            :step="0.1"
-            @change="readerSettings.updateLineHeight"
-          />
+          <el-slider v-model="readerSettings.settings.lineHeight" :min="1.2" :max="3" :step="0.1"
+            @change="readerSettings.updateLineHeight" />
         </div>
         <div class="setting-item">
           <span>背景颜色</span>
           <div class="bg-options">
-            <div
-              v-for="color in readerSettings.bgColors"
-              :key="color"
-              class="bg-option"
+            <div v-for="color in readerSettings.bgColors" :key="color" class="bg-option"
               :style="{ backgroundColor: color }"
               :class="{ active: readerSettings.settings.backgroundColor === color && !isNightModeActive }"
-              @click="readerSettings.updateBgColor(color)"
-            ></div>
+              @click="readerSettings.updateBgColor(color)"></div>
           </div>
         </div>
       </div>
@@ -66,16 +47,12 @@
     </div>
 
     <div class="reader-controls">
-      <button
-        :disabled="!navigation.hasPrevChapter.value"
-        @click="navigation.goToChapter(navigation.prevChapterId.value)"
-      >
+      <button :disabled="!navigation.hasPrevChapter.value"
+        @click="navigation.goToChapter(navigation.prevChapterId.value)">
         上一章
       </button>
-      <button
-        :disabled="!navigation.hasNextChapter.value"
-        @click="navigation.goToChapter(navigation.nextChapterId.value)"
-      >
+      <button :disabled="!navigation.hasNextChapter.value"
+        @click="navigation.goToChapter(navigation.nextChapterId.value)">
         下一章
       </button>
     </div>
@@ -105,9 +82,9 @@ onMounted(async () => {
   const initialChapterId = navigation.getValidId(route.params.chapterId);
 
   if (initialNovelId < 0 || initialChapterId < 0) {
-     navigation.error.value = "无效的小说或章节ID，无法加载页面。";
-     navigation.loading.value = false; // Ensure loading is false
-     return;
+    navigation.error.value = "无效的小说或章节ID，无法加载页面。";
+    navigation.loading.value = false; // Ensure loading is false
+    return;
   }
   // Update refs in composable if they were not set by watchers yet (e.g. direct navigation)
   navigation.novelId.value = initialNovelId;
@@ -134,7 +111,8 @@ onMounted(async () => {
   max-width: 800px;
   margin: 0 auto;
   min-height: 100vh;
-  transition: color 0.3s; /* Background is handled by body or reader-content */
+  transition: color 0.3s;
+  /* Background is handled by body or reader-content */
 
   // Night mode styles specific to the reader component itself
   &.night-mode {
@@ -142,7 +120,10 @@ onMounted(async () => {
 
     .reader-header {
       background-color: rgba(30, 30, 30, 0.9); // Darker header
-      h1 { color: #e0e0e0; }
+
+      h1 {
+        color: #e0e0e0;
+      }
     }
 
     .reader-content {
@@ -153,43 +134,55 @@ onMounted(async () => {
 
     .reader-controls {
       background-color: rgba(30, 30, 30, 0.9);
+
       button {
         background-color: #555;
         color: #e0e0e0;
+
         &:disabled {
           background-color: #444;
         }
+
         &:not(:disabled):hover {
           background-color: #666;
         }
       }
     }
+
     .error-message {
       background-color: #573033;
       color: #ffc0cb;
     }
+
     // Adjust Element Plus components for night mode if needed via :deep
     :deep(.el-button) {
       // Example: You might want to change default button colors in night mode
       // This depends on how Element Plus handles theming.
       background-color: #555;
       color: #e0e0e0;
-      &:hover { background-color: #666; }
+
+      &:hover {
+        background-color: #666;
+      }
     }
+
     :deep(.el-drawer) {
-       background-color: #2c2c2c; // For the drawer itself
+      background-color: #2c2c2c; // For the drawer itself
     }
+
     :deep(.el-drawer__header) {
-       color: #e0e0e0;
-       background-color: #333;
-       border-bottom-color: #444;
+      color: #e0e0e0;
+      background-color: #333;
+      border-bottom-color: #444;
     }
+
     :deep(.el-drawer__body) {
-       background-color: #2c2c2c;
-       color: #e0e0e0;
+      background-color: #2c2c2c;
+      color: #e0e0e0;
     }
+
     :deep(.settings-panel span) {
-     color: #e0e0e0;
+      color: #e0e0e0;
     }
   }
 }
@@ -226,11 +219,13 @@ onMounted(async () => {
 
 .reader-content {
   /* Use CSS Custom Properties set by the composable */
-  font-size: var(--reader-font-size, 16px); /* Fallback values */
+  font-size: var(--reader-font-size, 16px);
+  /* Fallback values */
   line-height: var(--reader-line-height, 1.8);
   /* background-color: var(--reader-bg-color, rgba(255, 255, 255, 0.95)); */
   /* Let the .reader.night-mode handle its own background or inherit from body */
-  background-color: rgba(255, 255, 255, 0.95); /* Default light mode background */
+  background-color: rgba(255, 255, 255, 0.95);
+  /* Default light mode background */
 
 
   min-height: 400px;
@@ -302,14 +297,16 @@ onMounted(async () => {
   transform: translate(-50%, -50%);
   font-size: 1.2rem;
 }
+
 .empty-content {
- text-align: center;
- padding: 2rem;
- color: #888;
+  text-align: center;
+  padding: 2rem;
+  color: #888;
 }
 
 .settings-panel {
-  padding: 1rem; /* Reduced padding for drawer */
+  padding: 1rem;
+  /* Reduced padding for drawer */
 
   .setting-item {
     margin-bottom: 1.5rem;
@@ -323,7 +320,8 @@ onMounted(async () => {
 
   .bg-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); /* Responsive columns */
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+    /* Responsive columns */
     gap: 0.8rem;
 
     .bg-option {
@@ -347,13 +345,16 @@ onMounted(async () => {
 }
 
 :deep(.el-drawer__header) {
-  margin-bottom: 1rem; /* Adjusted */
-  padding: 1rem 1.5rem; /* Adjusted */
+  margin-bottom: 1rem;
+  /* Adjusted */
+  padding: 1rem 1.5rem;
+  /* Adjusted */
   border-bottom: 1px solid #eee;
   // Night mode handled by .reader.night-mode :deep(...)
 }
+
 :deep(.el-drawer__body) {
- padding: 0 !important; // Override ElPlus padding if settings-panel has its own
+  padding: 0 !important; // Override ElPlus padding if settings-panel has its own
 }
 
 :deep(.el-slider) {
