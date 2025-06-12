@@ -1,6 +1,6 @@
 <template>
   <el-header class="home-header">
-    <div class="logo-title">ProjectReader</div>
+    <div class="logo-title" @click="goToHome">ProjectReader</div>
     <div class="search-bar">
       <el-autocomplete
         v-model="state1"
@@ -12,14 +12,15 @@
       />
     </div>
     <div class="header-icons">
-      <el-icon :size="24"><Reading /></el-icon>
-      <el-icon :size="24"><User /></el-icon>
+      <el-icon :size="24" @click="goToBookShelf"><Reading /></el-icon>
+      <el-icon :size="24" @click="goToUserCenter"><User /></el-icon>
     </div>
   </el-header>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { User, Reading } from '@element-plus/icons-vue';
 
 interface RestaurantItem {
@@ -60,6 +61,19 @@ const handleSelect = (item: Record<string, any>) => {
   console.log(item)
 }
 
+const router = useRouter();
+
+const goToHome = () => {
+  router.push('/');
+};
+
+const goToUserCenter = () => {
+  router.push('/user-center');
+};
+
+const goToBookShelf = () => {
+  router.push('/bookshelf')
+}
 onMounted(() => {
   restaurants.value = loadAll()
 })
@@ -83,8 +97,9 @@ onMounted(() => {
 .logo-title {
   font-size: 32px; /* Font size from Figma */
   font-weight: 400; /* Font weight from Figma */
-  color: #2ecc71; /* Text color from Figma */
+  color: hsla(160, 100%, 37%, 1); /* Text color from Figma, updated to main color */
   text-align: center; /* Text alignment from Figma */
+  cursor: pointer;
 }
 
 .search-bar {

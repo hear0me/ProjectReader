@@ -74,10 +74,7 @@
       </div>
     </el-main>
 
-    <el-footer class="home-footer">
-      <span>版权信息</span>
-      <span>联系方式: xxx-xxxx-xxxx</span>
-    </el-footer>
+    <Footer />
   </el-container>
 </template>
 
@@ -86,6 +83,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router'; // 引入 useRouter
 import { UserFilled } from '@element-plus/icons-vue'; // Import icons
 import Header from '../components/Header.vue'; // 引入 Header 组件
+import Footer from '../components/Footer.vue'; // 引入 Footer 组件
 
 // --- Router ---
 const router = useRouter(); // 获取 router 实例
@@ -348,6 +346,5 @@ const goToNovelDetail = (bookId) => {
   letter-spacing: 3.125%; /* Letter spacing from Figma */
   height: 40px; /* Keep existing height */
   border-top: 1px solid rgba(0, 0, 0, 0.1); /* Border from Figma */
-  border-radius: 4px; /* Rounded corners from Figma */
 }
 </style>

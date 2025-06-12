@@ -1,7 +1,8 @@
 <template>
+  
   <div class="bookshelf">
     <!-- <el-page-header title="我的书架" /> -->
-    
+    <Header />
     <el-empty v-if="books.length === 0" description="书架空空如也，快去添加喜欢的小说吧！">
       <el-button type="primary" @click="$router.push('/novels')">去找小说</el-button>
     </el-empty>
@@ -51,6 +52,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
+import Header from '@/components/Header.vue'
 
 const router = useRouter()
 
