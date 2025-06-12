@@ -3,12 +3,18 @@
   <div class="bookshelf">
     <!-- <el-page-header title="我的书架" /> -->
     <Header />
-    <el-empty v-if="books.length === 0" description="书架空空如也，快去添加喜欢的小说吧！">
+    <div class="bookshelf-controls">
+      <el-radio-group v-model="sortBy" size="small">
+        <el-radio-button label="lastReadTime">按阅读时间</el-radio-button>
+        <el-radio-button label="updateTime">按更新时间</el-radio-button>
+      </el-radio-group>
+    </div>
+    <el-empty v-if="sortedBooks.length === 0" description="书架空空如也，快去添加喜欢的小说吧！">
       <el-button type="primary" @click="$router.push('/novels')">去找小说</el-button>
     </el-empty>
 
     <div v-else class="book-list">
-      <el-card v-for="book in books" :key="book.id" class="book-card" :body-style="{ padding: '0px' }">
+      <el-card v-for="book in sortedBooks" :key="book.id" class="book-card" :body-style="{ padding: '0px' }">
         <div class="card-content">
           <el-image :src="book.cover" fit="cover" class="book-cover" @click="goToNovel(book.id)">
             <template #error>
@@ -24,8 +30,13 @@
               <el-icon><User /></el-icon>
               {{ book.author }}
             </p>
-            <p class="book-progress">
-              <el-progress :percentage="book.progress" :format="formatProgress" />
+            <p class="last-chapter">
+              <el-icon><Reading /></el-icon>
+              上次章节：{{ book.lastChapter }}
+            </p>
+            <p class="latest-chapter">
+              <el-icon><Reading /></el-icon>
+              最新章节：{{ book.latestChapter }}
             </p>
             <p class="last-read">
               <el-icon><Timer /></el-icon>
@@ -53,19 +64,33 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import Header from '@/components/Header.vue'
+import { Picture, User, Timer, VideoPlay, Delete, Reading } from '@element-plus/icons-vue'
+import { computed } from 'vue'
 
 const router = useRouter()
+
+const sortBy = ref('lastReadTime') // 默认按阅读时间排序
 
 interface Book {
   id: number
   title: string
   author: string
   cover: string
-  progress: number
   lastReadTime: string
+  lastChapter: string
+  updateTime: string
+  latestChapter: string
 }
 
-const formatProgress = (val: number) => `已读: ${val}%`
+const sortedBooks = computed(() => {
+  return [...books.value].sort((a, b) => {
+    const key = sortBy.value as 'lastReadTime' | 'updateTime'
+    const dateA = new Date(a[key]).getTime()
+    const dateB = new Date(b[key]).getTime()
+    return dateB - dateA // 降序排列，最新的在前
+  })
+})
+
 
 const books = ref<Book[]>([
   {
@@ -73,16 +98,30 @@ const books = ref<Book[]>([
     title: '示例小说1',
     author: '作者1',
     cover: 'https://picsum.photos/200/300?random=1',
-    progress: 35,
-    lastReadTime: '2024-01-09 23:15'
+    lastReadTime: '2024-01-09 23:15',
+    lastChapter: '第100章 新的开始',
+    updateTime: '2024-01-08 10:00',
+    latestChapter: '第101章 新的篇章'
   },
   {
     id: 2,
     title: '示例小说2',
     author: '作者2',
     cover: 'https://picsum.photos/200/300?random=2',
-    progress: 68,
-    lastReadTime: '2024-01-08 15:30'
+    lastReadTime: '2024-01-08 15:30',
+    lastChapter: '第50章 秘密揭示',
+    updateTime: '2024-01-09 09:00',
+    latestChapter: '第51章 秘密揭示（下）'
+  },
+  {
+    id: 3,
+    title: '示例小说3',
+    author: '作者3',
+    cover: 'https://picsum.photos/200/300?random=3',
+    lastReadTime: '2024-01-11 10:00',
+    lastChapter: '第200章 最终章',
+    updateTime: '2024-01-11 11:00',
+    latestChapter: '第201章 最终章（完）'
   }
 ])
 
@@ -117,6 +156,13 @@ const removeFromShelf = async (id: number) => {
   max-width: 100%;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+.bookshelf-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .book-list {
@@ -177,6 +223,24 @@ const removeFromShelf = async (id: number) => {
   margin: 8px 0;
 }
 
+.last-chapter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.latest-chapter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
+  margin: 8px 0;
+}
+
 .book-progress {
   margin: 15px 0;
 }
@@ -227,4 +291,4 @@ const removeFromShelf = async (id: number) => {
     min-width: auto;
   }
 }
-</style> 
+</style>
