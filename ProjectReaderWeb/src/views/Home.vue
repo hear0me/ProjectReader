@@ -1,86 +1,84 @@
 <template>
-  <div>
-    <el-container direction="vertical" class="home-container">
-      <Header />
+  <el-container direction="vertical" class="home-container">
+    <Header />
 
-      <el-main class="main-content no-padding">
-        <el-carousel height="200px" arrow="always">
-          <el-carousel-item v-for="item in 4" :key="item" class="carousel-item" @click="goToNovelDetail(1)" style="cursor: pointer;">
-            <h3>Carousel Slide {{ item }}</h3>
-          </el-carousel-item>
-        </el-carousel>
+    <el-main class="main-content no-padding">
+      <el-carousel height="200px" arrow="always">
+        <el-carousel-item v-for="item in 4" :key="item" class="carousel-item" @click="goToNovelDetail(1)" style="cursor: pointer;">
+          <h3>Carousel Slide {{ item }}</h3>
+        </el-carousel-item>
+      </el-carousel>
 
-        <div class="content-body">
-          <el-row :gutter="20">
-            <el-col :span="18">
-              <h3 class="section-title">推荐书籍</h3>
-              <el-row :gutter="15">
-                <el-col :span="8" v-for="book in recommendedBooks" :key="book.id">
-                  <el-card shadow="hover" class="book-card" @click="goToNovelDetail(book.id)" style="cursor: pointer;">
-                    <div class="book-content">
-                      <el-image
-                        :src="book.coverUrl"
-                        fit="cover"
-                        class="book-cover"
-                      />
-                      <div class="book-info">
-                        <div class="book-title">{{ book.title }}</div>
-                        <div class="book-author">
-                          <el-icon><UserFilled /></el-icon> {{ book.author }}
-                        </div>
-                        <div class="book-status">{{ book.status }}</div>
-                        <div class="book-description">{{ book.description }}</div>
-                        <div class="book-latest-chapter">{{ book.latestChapter }}</div>
+      <div class="content-body">
+        <el-row :gutter="20">
+          <el-col :span="18">
+            <h3 class="section-title">推荐书籍</h3>
+            <el-row :gutter="15">
+              <el-col :span="8" v-for="book in recommendedBooks" :key="book.id">
+                <el-card shadow="hover" class="book-card" @click="goToNovelDetail(book.id)" style="cursor: pointer;">
+                  <div class="book-content">
+                    <el-image
+                      :src="book.coverUrl"
+                      fit="cover"
+                      class="book-cover"
+                    />
+                    <div class="book-info">
+                      <div class="book-title">{{ book.title }}</div>
+                      <div class="book-author">
+                        <el-icon><UserFilled /></el-icon> {{ book.author }}
                       </div>
+                      <div class="book-status">{{ book.status }}</div>
+                      <div class="book-description">{{ book.description }}</div>
+                      <div class="book-latest-chapter">{{ book.latestChapter }}</div>
                     </div>
-                  </el-card>
-                </el-col>
-              </el-row>
-            </el-col>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </el-col>
 
-            <el-col :span="6">
-              <h3 class="section-title">书籍排行</h3>
-              <el-tabs v-model="activeRankTab" class="ranking-tabs">
-                <el-tab-pane label="总排行" name="total">
-                  <ol class="ranking-list">
-                    <li v-for="(item, index) in rankingData.total" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
-                      {{ index + 1 }} {{ item.name }}
-                    </li>
-                  </ol>
-                </el-tab-pane>
-                <el-tab-pane label="月排行" name="monthly">
-                  <ol class="ranking-list">
-                    <li v-for="(item, index) in rankingData.monthly" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
-                      {{ index + 1 }} {{ item.name }}
-                    </li>
-                  </ol>
-                </el-tab-pane>
-                <el-tab-pane label="周排行" name="weekly">
-                  <ol class="ranking-list">
-                    <li v-for="(item, index) in rankingData.weekly" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
-                      {{ index + 1 }} {{ item.name }}
-                    </li>
-                  </ol>
-                </el-tab-pane>
-                <el-tab-pane label="日排行" name="daily">
-                  <ol class="ranking-list">
-                    <li v-for="(item, index) in rankingData.daily" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
-                      {{ index + 1 }} {{ item.name }}
-                    </li>
-                  </ol>
-                </el-tab-pane>
-              </el-tabs>
-            </el-col>
-          </el-row>
-        </div>
-      </el-main>
+          <el-col :span="6">
+            <h3 class="section-title">书籍排行</h3>
+            <el-tabs v-model="activeRankTab" class="ranking-tabs">
+              <el-tab-pane label="总排行" name="total">
+                <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.total" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
+                    {{ index + 1 }} {{ item.name }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+              <el-tab-pane label="月排行" name="monthly">
+                <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.monthly" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
+                    {{ index + 1 }} {{ item.name }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+              <el-tab-pane label="周排行" name="weekly">
+                <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.weekly" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
+                    {{ index + 1 }} {{ item.name }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+              <el-tab-pane label="日排行" name="daily">
+                <ol class="ranking-list">
+                  <li v-for="(item, index) in rankingData.daily" :key="index" @click="goToNovelDetail(1)" style="cursor: pointer;">
+                    {{ index + 1 }} {{ item.name }}
+                  </li>
+                </ol>
+              </el-tab-pane>
+            </el-tabs>
+          </el-col>
+        </el-row>
+      </div>
+    </el-main>
 
-      <el-footer class="home-footer">
-        <span>版权信息</span>
-        <span>联系方式: xxx-xxxx-xxxx</span>
-      </el-footer>
-    </el-container>
-  </div>
+    <el-footer class="home-footer">
+      <span>版权信息</span>
+      <span>联系方式: xxx-xxxx-xxxx</span>
+    </el-footer>
+  </el-container>
 </template>
 
 <script setup>

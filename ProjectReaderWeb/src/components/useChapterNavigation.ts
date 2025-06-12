@@ -7,6 +7,34 @@ interface Chapter {
   content: string[]
 }
 
+interface BranchChapter {
+  id: number;
+  title: string;
+  author: string;
+  creationTime: string; // ISO 8601 格式的日期字符串
+  tags: string[];
+}
+
+// 辅助函数：生成虚拟章节内容
+const generateMockChapterContent = (chapterId: number, novelId: number): string[] => {
+  const paragraphs = [];
+  paragraphs.push(`这是小说 ${novelId} 的第 ${chapterId} 章的虚拟内容。`);
+  paragraphs.push('这段内容是为测试目的而生成的，不代表真实数据。');
+  for (let i = 0; i < 5; i++) {
+    paragraphs.push(`这是第 ${i + 1} 段虚拟文本。它包含一些随机的句子，以模拟真实的章节内容。`);
+  }
+  return paragraphs;
+};
+
+// 辅助函数：生成虚拟章节数据
+const generateMockChapter = (novelId: number, chapterId: number): Chapter => {
+  return {
+    id: chapterId,
+    title: `虚拟小说 ${novelId} - 第 ${chapterId} 章标题`,
+    content: generateMockChapterContent(chapterId, novelId),
+  };
+};
+
 // 验证并获取有效的ID值
 const getValidId = (param: string | string[] | undefined): number => {
   const id = typeof param === 'string' ? parseInt(param, 10) : NaN
@@ -31,6 +59,11 @@ export function useChapterNavigation() {
 
   const chapters = ref<number[]>([]) // 存储章节 ID 列表
 
+  const branchChapters = ref<BranchChapter[]>([]);
+  const showBranchChapters = ref(false);
+  const sortKey = ref<'creationTime' | 'title' | 'author'>('creationTime'); // 默认按创作时间排序
+  const sortOrder = ref<'asc' | 'desc'>('desc'); // 默认降序
+
   // 模拟API调用获取章节列表
   const fetchChaptersList = async (currentNovelId: number) => {
     if (currentNovelId < 0) {
@@ -54,37 +87,100 @@ export function useChapterNavigation() {
   }
 
   // 模拟API调用获取章节内容
+  const fetchBranchChapters = async (novelId: number, currentChapterId: number) => {
+    if (novelId < 0 || currentChapterId < 0) {
+      error.value = '无效的小说或章节ID，无法获取分支章节列表';
+      branchChapters.value = [];
+      return;
+    }
+    loading.value = true; // 可以考虑为分支章节单独设置 loading 状态
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500)); // 模拟延迟
+      // 示例数据：根据当前章节ID生成一些分支章节
+      const mockBranches: BranchChapter[] = Array.from({ length: 5 }, (_, i) => ({
+        id: currentChapterId * 100 + i + 1, // 模拟不同的章节ID
+        title: `分支章节 ${currentChapterId}.${i + 1} - ${['A', 'B', 'C', 'D', 'E'][i]}`,
+        author: `作者 ${i % 2 === 0 ? '张三' : '李四'}`,
+        creationTime: new Date(Date.now() - i * 3600 * 1000 * 24).toISOString(), // 模拟不同创作时间
+        tags: [`标签${i + 1}`, `类型${i % 3}`],
+      }));
+      branchChapters.value = mockBranches;
+    } catch (e) {
+      error.value = '获取分支章节失败';
+      console.error('fetchBranchChapters error:', e);
+      branchChapters.value = [];
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const toggleBranchChapters = async () => {
+    console.log("novelId.value", novelId.value);
+    showBranchChapters.value = !showBranchChapters.value;
+    if (showBranchChapters.value) {
+      await fetchBranchChapters(novelId.value, chapterId.value);
+      sortBranchChapters(); // 默认排序
+    }
+  };
+
+  const sortBranchChapters = () => {
+    branchChapters.value.sort((a, b) => {
+      let valA: any;
+      let valB: any;
+
+      if (sortKey.value === 'creationTime') {
+        valA = new Date(a.creationTime).getTime();
+        valB = new Date(b.creationTime).getTime();
+      } else if (sortKey.value === 'title') {
+        valA = a.title;
+        valB = b.title;
+      } else if (sortKey.value === 'author') {
+        valA = a.author;
+        valB = b.author;
+      }
+
+      if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder.value === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
   const fetchChapterContent = async (currentChapterId: number) => {
-    error.value = null // 重置错误状态
+    error.value = null; // 重置错误状态
     if (currentChapterId < 0) {
-      error.value = '无效的章节ID'
+      error.value = '无效的章节ID';
       chapter.value = { id: -1, title: '错误', content: ['无效的章节ID'] };
-      return
+      return;
     }
 
-    loading.value = true
+    loading.value = true;
     try {
-      // console.log(`Workspaceing content for chapter ${currentChapterId}`);
-      await new Promise(resolve => setTimeout(resolve, 300)) // 模拟延迟
-      const response = {
-        id: currentChapterId,
-        title: `第${currentChapterId}章标题`,
-        content: [
-          `这是第${currentChapterId}章的示例内容。`,
-          '这是第一段内容。',
-          '这是第二段内容。',
-          '小说ID: ' + novelId.value,
-        ],
+      // 如果 novelId 是 999，则生成虚拟章节数据
+      if (novelId.value === 999) {
+        chapter.value = generateMockChapter(novelId.value, currentChapterId);
+      } else {
+        // 否则，模拟API调用获取章节内容
+        await new Promise(resolve => setTimeout(resolve, 300)); // 模拟延迟
+        const response = {
+          id: currentChapterId,
+          title: `第${currentChapterId}章标题`,
+          content: [
+            `这是第${currentChapterId}章的示例内容。`,
+            '这是第一段内容。',
+            '这是第二段内容。',
+            '小说ID: ' + novelId.value,
+          ],
+        };
+        chapter.value = response;
       }
-      chapter.value = response
     } catch (e) {
-      error.value = '获取章节内容失败'
-      console.error('fetchChapterContent error:', e)
+      error.value = '获取章节内容失败';
+      console.error('fetchChapterContent error:', e);
       chapter.value = { ...chapter.value, title: '加载失败', content: ['获取内容失败，请重试'] };
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const currentChapterIndex = computed(() => chapters.value.indexOf(chapterId.value))
   const hasPrevChapter = computed(() => chapters.value.length > 0 && currentChapterIndex.value > 0)
@@ -179,8 +275,15 @@ export function useChapterNavigation() {
     error,
     chapter,
     chapters, // Expose for potential direct use or debugging
+    branchChapters,
+    showBranchChapters,
+    sortKey,
+    sortOrder,
     fetchChaptersList,
     fetchChapterContent,
+    fetchBranchChapters,
+    toggleBranchChapters,
+    sortBranchChapters,
     hasPrevChapter,
     hasNextChapter,
     prevChapterId,

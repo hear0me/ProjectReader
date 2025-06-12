@@ -51,11 +51,44 @@
         @click="navigation.goToChapter(navigation.prevChapterId.value)">
         上一章
       </button>
-      <button :disabled="!navigation.hasNextChapter.value"
-        @click="navigation.goToChapter(navigation.nextChapterId.value)">
+      <!-- <button :disabled="!navigation.hasNextChapter.value" -->
+      <button
+        @click="navigation.toggleBranchChapters()">
         下一章
       </button>
     </div>
+
+    <el-dialog
+      v-model="navigation.showBranchChapters.value"
+      title="选择后续章节"
+      width="80%"
+      top="5vh"
+      custom-class="branch-chapters-dialog"
+    >
+      <div class="branch-chapters-sort">
+        <span>排序方式：</span>
+        <el-radio-group v-model="navigation.sortKey.value" @change="navigation.sortBranchChapters">
+          <el-radio-button label="creationTime">创作时间</el-radio-button>
+          <el-radio-button label="title">章节名</el-radio-button>
+          <el-radio-button label="author">作者</el-radio-button>
+        </el-radio-group>
+        <el-radio-group v-model="navigation.sortOrder.value" @change="navigation.sortBranchChapters">
+          <el-radio-button label="desc">降序</el-radio-button>
+          <el-radio-button label="asc">升序</el-radio-button>
+        </el-radio-group>
+      </div>
+      <div v-if="navigation.loading.value" class="loading-branches">加载分支章节中...</div>
+      <div v-else-if="navigation.error.value" class="error-message">{{ navigation.error.value }}</div>
+      <div v-else-if="navigation.branchChapters.value.length === 0" class="empty-branches">暂无分支章节</div>
+      <ul v-else class="branch-chapters-list">
+        <li v-for="branch in navigation.branchChapters.value" :key="branch.id" @click="navigation.goToChapter(branch.id); navigation.showBranchChapters.value = false;">
+          <h3>{{ branch.title }}</h3>
+          <p>作者: {{ branch.author }}</p>
+          <p>创作时间: {{ new Date(branch.creationTime).toLocaleString() }}</p>
+          <p>标签: <el-tag v-for="tag in branch.tags" :key="tag" size="small">{{ tag }}</el-tag></p>
+        </li>
+      </ul>
+    </el-dialog>
   </div>
 </template>
 
@@ -64,6 +97,7 @@ import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router' // useRoute can still be useful directly here for initial check
 import { useReaderSettings } from '../components/useReaderSettings' // Adjust path
 import { useChapterNavigation } from '../components/useChapterNavigation' // Adjust path
+import { ElDialog, ElRadioGroup, ElRadioButton, ElTag } from 'element-plus'; // 导入 Element Plus 组件
 
 const route = useRoute();
 const readerSettings = useReaderSettings()
@@ -359,5 +393,130 @@ onMounted(async () => {
 
 :deep(.el-slider) {
   width: 100%;
+}
+
+.branch-chapters-dialog {
+  .el-dialog__header {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #eee;
+    padding: 1rem 1.5rem;
+  }
+
+  .el-dialog__title {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .el-dialog__body {
+    padding: 1.5rem;
+  }
+
+  &.night-mode {
+    .el-dialog__header {
+      background-color: #333;
+      border-bottom-color: #444;
+      color: #e0e0e0;
+    }
+    .el-dialog__title {
+      color: #e0e0e0;
+    }
+    .el-dialog__body {
+      background-color: #2c2c2c;
+      color: #e0e0e0;
+    }
+    .branch-chapters-sort {
+      span {
+        color: #e0e0e0;
+      }
+      .el-radio-button {
+        background-color: #555;
+        color: #e0e0e0;
+        border-color: #666;
+        &.is-active {
+          background-color: #42b983;
+          border-color: #42b983;
+          color: white;
+        }
+      }
+    }
+    .branch-chapters-list li {
+      background-color: #3a3a3a;
+      border-color: #444;
+      h3, p {
+        color: #e0e0e0;
+      }
+      &:hover {
+        background-color: #4a4a4a;
+      }
+    }
+    .el-tag {
+      background-color: #555;
+      color: #e0e0e0;
+    }
+    .loading-branches, .empty-branches {
+      color: #bbb;
+    }
+  }
+}
+
+.branch-chapters-sort {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+
+  span {
+    font-weight: 500;
+  }
+}
+
+.branch-chapters-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background-color: #f0f0f0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    p {
+      margin: 0.3rem 0;
+      font-size: 0.9rem;
+      color: #666;
+      text-indent: 0; /* Override reader-content p style */
+    }
+
+    .el-tag {
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+  }
+}
+
+.loading-branches, .empty-branches {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+  font-size: 1.1rem;
 }
 </style>

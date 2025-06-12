@@ -19,12 +19,12 @@ const router = createRouter({
       component: NovelList
     },
     {
-      path: '/novels/:id',
+      path: '/novels/:novelId',
       name: 'novel-detail',
       component: NovelDetail
     },
     {
-      path: '/novels/:id/read/:chapterId',
+      path: '/novels/:novelId/read/:chapterId',
       name: 'reader',
       component: Reader
     },
