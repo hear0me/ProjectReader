@@ -199,7 +199,7 @@ export function useChapterNavigation() {
       return
     }
     try {
-      await router.push(`/novels/<span class="math-inline">\{novelId\.value\}/read/</span>{newChapterId}`)
+      await router.push(`/novels/${novelId.value}/read/${newChapterId}`)
     } catch (e) {
       error.value = '页面跳转失败'
       console.error('goToChapter error:', e)

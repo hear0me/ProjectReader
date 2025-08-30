@@ -140,6 +140,8 @@ onMounted(async () => {
 //   /* Styles for light mode on body if needed, e.g., transitions */
 // }
 
+$reader-bg-night: #2c2c2c; // Make sure this matches useReaderSettings.ts
+
 .reader {
   padding: 2rem;
   max-width: 800px;
@@ -161,9 +163,7 @@ onMounted(async () => {
     }
 
     .reader-content {
-      background-color: #2c2c2c; // Slightly lighter than body for contrast
-      // color is inherited or can be set specifically:
-      // p { color: #dcdcdc; }
+      background-color: var(--reader-bg-color, $reader-bg-night); // 使用 SCSS 变量，保持一致性
     }
 
     .reader-controls {
@@ -201,7 +201,7 @@ onMounted(async () => {
     }
 
     :deep(.el-drawer) {
-      background-color: #2c2c2c; // For the drawer itself
+      background-color: $reader-bg-night; // For the drawer itself
     }
 
     :deep(.el-drawer__header) {
@@ -211,7 +211,7 @@ onMounted(async () => {
     }
 
     :deep(.el-drawer__body) {
-      background-color: #2c2c2c;
+      background-color: $reader-bg-night;
       color: #e0e0e0;
     }
 
@@ -256,11 +256,8 @@ onMounted(async () => {
   font-size: var(--reader-font-size, 16px);
   /* Fallback values */
   line-height: var(--reader-line-height, 1.8);
-  /* background-color: var(--reader-bg-color, rgba(255, 255, 255, 0.95)); */
+  background-color: var(--reader-bg-color, rgba(255, 255, 255, 0.95));
   /* Let the .reader.night-mode handle its own background or inherit from body */
-  background-color: rgba(255, 255, 255, 0.95);
-  /* Default light mode background */
-
 
   min-height: 400px;
   position: relative;
@@ -269,7 +266,6 @@ onMounted(async () => {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
   transition: background-color 0.3s, color 0.3s;
-
 
   p {
     margin: 1em 0;
@@ -421,7 +417,7 @@ onMounted(async () => {
       color: #e0e0e0;
     }
     .el-dialog__body {
-      background-color: #2c2c2c;
+      background-color: $reader-bg-night;
       color: #e0e0e0;
     }
     .branch-chapters-sort {

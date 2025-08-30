@@ -76,8 +76,7 @@ export function useReaderSettings() {
   const readerContentStyles = computed(() => ({
     '--reader-font-size': `${settings.fontSize}px`,
     '--reader-line-height': settings.lineHeight,
-    // 如果阅读器内部背景色也受 settings.backgroundColor 影响（非夜间模式下）
-    // '--reader-bg-color': isNightMode.value ? 'transparent' : settings.backgroundColor // 或者固定为白色，让body控制
+    '--reader-bg-color': isNightMode.value ? '#2c2c2c' : settings.backgroundColor
   }))
 
   return {
