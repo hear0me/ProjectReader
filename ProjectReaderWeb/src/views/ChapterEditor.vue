@@ -422,6 +422,12 @@ watch(
   gap: 12px;
 }
 
+.editor-header .right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .title-area .title {
   margin: 0;
   font-size: 1.25rem;
