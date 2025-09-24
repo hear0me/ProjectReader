@@ -38,10 +38,9 @@
     <div class="reader-content" :style="readerSettings.readerContentStyles.value">
       <div v-if="navigation.loading.value" class="loading">加载中...</div>
       <div v-else-if="navigation.error.value" class="error-message">{{ navigation.error.value }}</div>
-      <template v-else-if="chapterData.content && chapterData.content.length">
-        <p v-for="(paragraph, index) in chapterData.content" :key="index">
-          {{ paragraph }}
-        </p>
+      <template v-else-if="chapterHtmlContent">
+        <!-- 渲染 HTML 内容。注意：实际应用中，从后端获取的 HTML 内容必须经过严格的净化（Sanitize），以防止 XSS 攻击。 -->
+        <div v-html="chapterHtmlContent" class="chapter-html-content"></div>
       </template>
       <div v-else class="empty-content">暂无内容</div>
     </div>
@@ -65,6 +64,12 @@
       top="5vh"
       custom-class="branch-chapters-dialog"
     >
+      <template #header="{ close, titleId }">
+        <div class="branch-chapters-dialog-header">
+          <h4 :id="titleId">选择后续章节</h4>
+          <el-button type="primary" @click="goToCreateBranch" icon="Plus">新建分支</el-button>
+        </div>
+      </template>
       <div class="branch-chapters-sort">
         <span>排序方式：</span>
         <el-radio-group v-model="navigation.sortKey.value" @change="navigation.sortBranchChapters">
@@ -94,12 +99,13 @@
 
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router' // useRoute can still be useful directly here for initial check
+import { useRoute, useRouter } from 'vue-router' // 导入 useRouter
 import { useReaderSettings } from '../components/useReaderSettings' // Adjust path
 import { useChapterNavigation } from '../components/useChapterNavigation' // Adjust path
-import { ElDialog, ElRadioGroup, ElRadioButton, ElTag } from 'element-plus'; // 导入 Element Plus 组件
+import { ElDialog, ElRadioGroup, ElRadioButton, ElTag, ElButton } from 'element-plus'; // 导入 ElButton
 
 const route = useRoute();
+const router = useRouter(); // 初始化 useRouter
 const readerSettings = useReaderSettings()
 const navigation = useChapterNavigation()
 
@@ -109,6 +115,28 @@ const isNightModeActive = readerSettings.isNightMode // This is already a ref
 
 // Expose methods
 const goBack = navigation.goBack
+
+// 将章节内容数组转换为 HTML 字符串，以便 v-html 渲染
+const chapterHtmlContent = computed(() => {
+  if (chapterData.value && chapterData.value.content && chapterData.value.content.length > 0) {
+    // 如果内容是纯文本数组，将其用 <p> 标签包裹并连接
+    // 实际情况中，如果后端直接返回 HTML，则不需要此转换
+    return chapterData.value.content.map(p => `<p>${p}</p>`).join('');
+  }
+  return '';
+});
+
+const goToCreateBranch = () => {
+  // 跳转到新建分支页面，并传递当前小说ID和章节ID作为父章节ID
+  router.push({
+    name: 'ChapterEditor', // 稍后会在 router/index.ts 中定义这个路由名称
+    params: {
+      novelId: navigation.novelId.value,
+      parentChapterId: navigation.chapterId.value
+    }
+  });
+  navigation.showBranchChapters.value = false; // 关闭分支选择弹窗
+};
 
 onMounted(async () => {
   // Ensure IDs are valid before initializing
@@ -274,6 +302,26 @@ $reader-bg-night: #2c2c2c; // Make sure this matches useReaderSettings.ts
   }
 }
 
+.chapter-html-content {
+  // 为 v-html 渲染的内容提供基础样式，确保与原有 <p> 标签样式一致
+  :deep(p) {
+    margin: 1em 0;
+    text-indent: 2em;
+    transition: color 0.3s;
+  }
+  // 如果 Quill 默认生成其他标签（如 h1, h2, ul, ol），也需要在此处添加样式
+  // 例如：
+  // :deep(h1), :deep(h2), :deep(h3) {
+  //   margin-top: 1.5em;
+  //   margin-bottom: 0.5em;
+  //   font-weight: bold;
+  // }
+  // :deep(ul), :deep(ol) {
+  //   margin-left: 2em;
+  //   margin-bottom: 1em;
+  // }
+}
+
 .reader-controls {
   display: flex;
   justify-content: space-between;
@@ -392,15 +440,30 @@ $reader-bg-night: #2c2c2c; // Make sure this matches useReaderSettings.ts
 }
 
 .branch-chapters-dialog {
-  .el-dialog__header {
+  .branch-chapters-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
     background-color: #f5f5f5;
     border-bottom: 1px solid #eee;
-    padding: 1rem 1.5rem;
+
+    h4 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #333;
+    }
+  }
+
+  .el-dialog__header {
+    // 覆盖 Element Plus 默认的 header 样式，因为我们自定义了
+    padding: 0;
   }
 
   .el-dialog__title {
-    font-size: 1.2rem;
-    font-weight: bold;
+    // 隐藏 Element Plus 默认的 title，因为我们自定义了
+    // display: none; // 恢复默认，因为我们现在使用 el-dialog 的 title 属性
   }
 
   .el-dialog__body {
@@ -408,13 +471,13 @@ $reader-bg-night: #2c2c2c; // Make sure this matches useReaderSettings.ts
   }
 
   &.night-mode {
-    .el-dialog__header {
+    .branch-chapters-dialog-header {
       background-color: #333;
       border-bottom-color: #444;
-      color: #e0e0e0;
-    }
-    .el-dialog__title {
-      color: #e0e0e0;
+
+      h4 {
+        color: #e0e0e0;
+      }
     }
     .el-dialog__body {
       background-color: $reader-bg-night;
