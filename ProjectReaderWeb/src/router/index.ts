@@ -6,6 +6,8 @@ import Reader from '../views/Reader.vue'
 import Bookshelf from '../views/Bookshelf.vue'
 import UserCenter from '../views/UserCenter.vue'
 import ChapterEditor from '../views/ChapterEditor.vue' // 导入新的编辑器组件
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +47,16 @@ const router = createRouter({
       path: '/user-center',
       name: 'user-center',
       component: UserCenter
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: Login
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: Register
     }
   ]
 })

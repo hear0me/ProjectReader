@@ -22,6 +22,7 @@
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { User, Reading } from '@element-plus/icons-vue';
+import { useAuth } from '../composables/useAuth';
 
 interface RestaurantItem {
   value: string
@@ -62,17 +63,26 @@ const handleSelect = (item: Record<string, any>) => {
 }
 
 const router = useRouter();
+const { isAuthenticated } = useAuth();
 
 const goToHome = () => {
   router.push('/');
 };
 
 const goToUserCenter = () => {
-  router.push('/user-center');
+  if (isAuthenticated.value) {
+    router.push('/user-center');
+  } else {
+    router.push('/login');
+  }
 };
 
 const goToBookShelf = () => {
-  router.push('/bookshelf')
+  if (isAuthenticated.value) {
+    router.push('/bookshelf');
+  } else {
+    router.push('/login');
+  }
 }
 onMounted(() => {
   restaurants.value = loadAll()
